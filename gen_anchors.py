@@ -65,6 +65,7 @@ def print_anchors(centroids):
 
 def run_kmeans(ann_dims, anchor_num):
     ann_num = ann_dims.shape[0]
+    print(type(anchor_num), "\n")
     iterations = 0
     prev_assignments = np.ones(ann_num)*(-1)
     iteration = 0
@@ -102,7 +103,7 @@ def run_kmeans(ann_dims, anchor_num):
 
 def main(argv):
     config_path = args.conf
-    num_anchors = args.anchors
+    num_anchors = int(args.anchors)
 
     with open(config_path) as config_buffer:
         config = json.loads(config_buffer.read())

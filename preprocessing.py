@@ -155,7 +155,9 @@ class BatchGenerator(Sequence):
         return np.array(annots)
 
     def load_image(self, i):
-        return cv2.imread(self.images[i]['filename'])
+        img = cv2.imread(self.images[i]['filename'], cv2.IMREAD_GRAYSCALE)
+        img = np.expand_dims(img, axis=-1)
+        return cv2.imread(self.images[i]['filename'], cv2.IMREAD_GRAYSCALE)
 
     def __getitem__(self, idx):
         l_bound = idx*self.config['BATCH_SIZE']
@@ -167,7 +169,8 @@ class BatchGenerator(Sequence):
 
         instance_count = 0
 
-        x_batch = np.zeros((r_bound - l_bound, self.config['IMAGE_H'], self.config['IMAGE_W'], 3))                         # input images
+        # x_batch = np.zeros((r_bound - l_bound, self.config['IMAGE_H'], self.config['IMAGE_W'], 3))                         # input images
+        x_batch = np.zeros((r_bound - l_bound, self.config['IMAGE_H'], self.config['IMAGE_W'], 1))   
         b_batch = np.zeros((r_bound - l_bound, 1     , 1     , 1    ,  self.config['TRUE_BOX_BUFFER'], 4))   # list of self.config['TRUE_self.config['BOX']_BUFFER'] GT boxes
         y_batch = np.zeros((r_bound - l_bound, self.config['GRID_H'],  self.config['GRID_W'], self.config['BOX'], 4+1+len(self.config['LABELS'])))                # desired network output
 
@@ -251,10 +254,11 @@ class BatchGenerator(Sequence):
 
     def aug_image(self, train_instance, jitter):
         image_name = train_instance['filename']
-        image = cv2.imread(image_name)
+        image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
 
         if image is None: print('Cannot find ', image_name)
-
+        
+        image = np.expand_dims(image, axis=-1)
         h, w, c = image.shape
         all_objs = copy.deepcopy(train_instance['object'])
 
@@ -279,7 +283,9 @@ class BatchGenerator(Sequence):
             
         # resize the image to standard size
         image = cv2.resize(image, (self.config['IMAGE_H'], self.config['IMAGE_W']))
-        image = image[:,:,::-1]
+        if len(image.shape) < 3:
+            image = np.expand_dims(image, axis=-1)
+        # image = image[:,:,::-1]
 
         # fix object's position and size
         for obj in all_objs:
